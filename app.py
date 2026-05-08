@@ -1,4 +1,6 @@
 import streamlit as st
+import states
+import auswertung
 
 st.title("Nachsorge-App")
 st.subheader("Tages-Check-in")
@@ -23,27 +25,21 @@ if st.button("Auswerten"):
     for i, tag in enumerate(woche):
         st.write(f"Stimmung Tag {i + 1}: {tag['stimmung']}")
 
-    stimmungswerte = []
-    for tag in woche:
-        stimmungswerte.append(tag["stimmung"])
+    durchschnitt_stimmung = auswertung.berechne_durchschnitt(woche, "stimmung")
+    st.write(f"Durchschnitt Stimmung: {durchschnitt_stimmung}")
 
-    durchschnitt = round(sum(stimmungswerte) / len(stimmungswerte), 1)
-    st.write(f"Durchschnitt Stimmung: {durchschnitt}")
+    durchschnitt_energie = auswertung.berechne_durchschnitt(woche, "energie")
+    st.write(f"Durchschnitt Energie: {durchschnitt_energie}")
 
-    schlechtester_wert = 10
-    schlechtester_tag = 1
-    for i, tag in enumerate(woche):
-        if tag["stimmung"] < schlechtester_wert:
-            schlechtester_wert = tag["stimmung"]
-            schlechtester_tag = i + 1
+    durchschnitt_schlaf = auswertung.berechne_durchschnitt(woche, "schlaf")
+    st.write(f"Durchschnitt Schlaf: {durchschnitt_schlaf}")
 
-    st.write(f"Schlechtester Tag: Tag {schlechtester_tag} (Stimmung {schlechtester_wert})")
+    schlechtester = auswertung.finde_schlechtesten_tag(woche, "stimmung")
+    st.write(f"Schlechtester Tag: Tag {schlechtester['tag']} (Stimmung {schlechtester["wert"]})")
+    bewertung = states.stimmung_check(schlechtester["wert"])
+    st.write(f"Bewertung: {bewertung}")
 
-    kritische_tage = 0
-    for tag in woche:
-        if tag["energie"] < 4:
-            kritische_tage = kritische_tage + 1
-
+    kritische_tage = auswertung.zaehle_kritische_tage(woche, "energie", 4)
     st.write(f"Tage mit niedriger Energie: {kritische_tage}")
 
     if kritische_tage > 3:
