@@ -1,5 +1,7 @@
 def stimmung_check(wert):
     """Bewertet die Stimmung isoliert."""
+    if wert is None or not isinstance(wert, int):
+        return None
     if wert < 4:
         return "niedrig"
     elif wert < 7:
