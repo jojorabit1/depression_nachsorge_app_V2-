@@ -36,12 +36,10 @@ def eintrag_laden(verbindung):
     for zeile in zeilen:
        print(f"ID {zeile[0]} | {zeile[1]} | Stimmung {zeile[2]} | Energie {zeile[3]} | Schlaf {zeile[4]}")
     return zeilen
-def main():
-    with sqlite3.connect("nachsorge.db") as verbindung:
-        erstelle_tabelle(verbindung)
-        eintrag_laden(verbindung)
-    print("Verbindung geschlossen.")
 
-if __name__ == "__main__":
-    main()
 
+def eintrag_heute_vorhanden(verbindung, datum):
+    cursor = verbindung.cursor()
+    cursor.execute("SELECT * FROM eintraege WHERE datum = ?", (datum,))
+    ergebnis = cursor.fetchone()
+    return bool(ergebnis)

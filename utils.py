@@ -1,3 +1,5 @@
+from datetime import date
+
 def sicher_teilen(a, b):
     if not isinstance(a, (float, int)):
         return None
@@ -6,3 +8,9 @@ def sicher_teilen(a, b):
     if b == 0:
         return None
     return (a/ b)
+
+def datum_heute():
+
+    heute_str = date.today().isoformat()
+    return heute_str
+print(datum_heute())
