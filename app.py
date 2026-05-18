@@ -1,6 +1,11 @@
 import streamlit as st
 import states
 import auswertung
+import datenbank
+import datetime
+
+verbindung = datenbank.verbindung_herstellen()
+datenbank.erstelle_tabelle(verbindung)
 
 st.title("Nachsorge-App")
 st.subheader("Tages-Check-in")
@@ -49,3 +54,28 @@ if st.button("Auswerten"):
     else:
         st.write("Gute Woche! Deine Energie war stabil.")
 
+if st.button("Speichern"):
+    datum = datetime.date.today().isoformat()
+    datenbank.eintrag_speichern(
+        verbindung,
+        datum,
+        woche[0]["stimmung"],
+        woche[0]["energie"],
+        woche[0]["schlaf"]
+    )
+    st.success("Eintrag gespeichert!")
+
+st.subheader("Gespeicherte Einträge")
+eintraege = datenbank.eintrag_laden(verbindung)
+
+tabelle = []
+for zeile in eintraege:
+    tabelle.append({
+        "ID": zeile[0],
+        "Datum": zeile[1],
+        "Stimmung": zeile[2],
+        "Energie": zeile[3],
+        "Schlaf": zeile[4]
+    })
+
+st.table(tabelle)
