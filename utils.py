@@ -10,10 +10,7 @@ def sicher_teilen(a, b):
     return (a/ b)
 
 def datum_heute():
-
-    heute_str = date.today().isoformat()
-    return heute_str
-print(datum_heute())
+    return date.today().isoformat()
 
 def datum_anzeige():
     return date.today().strftime("%d.%m.%Y")
