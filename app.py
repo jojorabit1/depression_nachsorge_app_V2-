@@ -1,72 +1,86 @@
 import streamlit as st
 import datenbank
-from utils import datum_heute
+from utils import datum_heute, datum_anzeige
 import auswertung
 import pandas as pd
+from datetime import date
 
 verbindung = datenbank.verbindung_herstellen()
 datenbank.erstelle_tabelle(verbindung)
-
-st.title("Nachsorge-App")
-st.subheader("Tages-Check-in")
-
-stimmung = st.slider("Stimmung", min_value=1, max_value=10, value=5)
-energie = st.slider("Energie", min_value=1, max_value=10, value=5)
-schlaf = st.slider("Schlaf", min_value=1, max_value=10, value=5)
-
-
-if st.button("Speichern"):
-    datum = datum_heute()
-    if datenbank.eintrag_heute_vorhanden(verbindung, datum):
-        st.warning("Du hast heute bereits eingecheckt")
-    else:
-        datenbank.eintrag_speichern(verbindung, datum, stimmung, energie, schlaf)
-        st.success("Eintrag gespeichert!")
-
-st.subheader("Gespeicherte Einträge")
 eintraege = datenbank.eintrag_laden(verbindung)
 
-tabelle = []
-for zeile in eintraege:
-    tabelle.append({
-        "Datum": zeile["datum"],
-        "Stimmung": zeile["stimmung"],
-        "Energie": zeile["energie"],
-        "Schlaf": zeile["schlaf"]
-    })
+with st.sidebar:
+    st.title("Nachsorge-App")
+    st.write("dein täglicher check-in nach dem Klinikaufenthalt.")
+    st.divider()
+    st.write(f"Heute: {datum_anzeige()}")
+    st.write(f"einträge gesamt: {len(eintraege)}")
 
-st.table(tabelle)
+tab_checkin, tab_verlauf, tab_auswertung = st.tabs(["check-in", "verlauf", "auswertung"])
+with tab_checkin:
+    st.subheader("Tages-Check-in")
 
-st.subheader("Auswertung")
+    stimmung = st.slider("Stimmung", min_value=1, max_value=10, value=5)
+    energie = st.slider("Energie", min_value=1, max_value=10, value=5)
+    schlaf = st.slider("Schlaf", min_value=1, max_value=10, value=5)
 
-if len(eintraege) == 0:
-    st.info("Noch keine Einträge")
-else:
-    durchschnitt_stimmung = auswertung.berechne_durchschnitt(eintraege, "stimmung")
-    durchschnitt_energie = auswertung.berechne_durchschnitt(eintraege, "energie")
-    durchschnitt_schlaf = auswertung.berechne_durchschnitt(eintraege, "schlaf")
 
-    if len(eintraege) >= 2:
-        delta_stimmung = round(eintraege[-1]["stimmung"] - eintraege[-2]["stimmung"], 1)
-        delta_energie = round(eintraege[-1]["energie"] - eintraege[-2]["energie"], 1)
-        delta_schlaf = round(eintraege[-1]["schlaf"] - eintraege[-2]["schlaf"], 1)
+    if st.button("Speichern"):
+        datum = datum_heute()
+        if datenbank.eintrag_heute_vorhanden(verbindung, datum):
+            st.warning("Du hast heute bereits eingecheckt")
+        else:
+            datenbank.eintrag_speichern(verbindung, datum, stimmung, energie, schlaf)
+            st.success("Eintrag gespeichert!")
+
+with tab_auswertung:
+
+
+    st.subheader("Auswertung")
+
+    if len(eintraege) == 0:
+        st.info("Noch keine Einträge")
     else:
-        delta_stimmung = None
-        delta_energie = None
-        delta_schlaf = None
+        durchschnitt_stimmung = auswertung.berechne_durchschnitt(eintraege, "stimmung")
+        durchschnitt_energie = auswertung.berechne_durchschnitt(eintraege, "energie")
+        durchschnitt_schlaf = auswertung.berechne_durchschnitt(eintraege, "schlaf")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric(label="Stimmung:", value=durchschnitt_stimmung, delta=delta_stimmung)
-    col2.metric(label="Energie:", value=durchschnitt_energie, delta=delta_energie)
-    col3.metric(label="Schlaf:", value=durchschnitt_schlaf, delta=delta_schlaf)
+        if len(eintraege) >= 2:
+            delta_stimmung = round(eintraege[-1]["stimmung"] - eintraege[-2]["stimmung"], 1)
+            delta_energie = round(eintraege[-1]["energie"] - eintraege[-2]["energie"], 1)
+            delta_schlaf = round(eintraege[-1]["schlaf"] - eintraege[-2]["schlaf"], 1)
+        else:
+            delta_stimmung = None
+            delta_energie = None
+            delta_schlaf = None
 
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="Stimmung:", value=durchschnitt_stimmung, delta=delta_stimmung)
+        col2.metric(label="Energie:", value=durchschnitt_energie, delta=delta_energie)
+        col3.metric(label="Schlaf:", value=durchschnitt_schlaf, delta=delta_schlaf)
 
-st.subheader("Verlauf")
+    with st.expander ("gespeicherte Einträge anzeigen"):
+        tabelle = []
+        for zeile in eintraege:
+            tabelle.append({
+                "Datum": date.fromisoformat(zeile["datum"]).strftime("%d.%m.%Y"),
+                "Stimmung": zeile["stimmung"],
+                "Energie": zeile["energie"],
+                "Schlaf": zeile["schlaf"]
+            })
 
-if len(eintraege) == 0:
-    st.info("Noch keine Einträge für den Verlauf.")
-else:
-    df = pd.DataFrame(eintraege)
-    df = df.set_index("datum")
-    st.line_chart(df[["stimmung", "energie", "schlaf"]])
+        st.table(tabelle)
+
+with tab_verlauf:
+    st.subheader("Verlauf")
+
+    if len(eintraege) == 0:
+        st.info("Noch keine Einträge für den Verlauf.")
+    else:
+        df = pd.DataFrame(eintraege)
+        df["datum"] = pd.to_datetime(df["datum"])
+        df["datum"] = df["datum"].dt.strftime("%d.%m.")
+        df = df.set_index("datum")
+        st.line_chart(df[["stimmung", "energie", "schlaf"]])
+
 

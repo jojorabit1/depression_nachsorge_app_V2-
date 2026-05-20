@@ -14,3 +14,6 @@ def datum_heute():
     heute_str = date.today().isoformat()
     return heute_str
 print(datum_heute())
+
+def datum_anzeige():
+    return date.today().strftime("%d.%m.%Y")
