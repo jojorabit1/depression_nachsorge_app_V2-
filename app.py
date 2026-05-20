@@ -1,8 +1,8 @@
-import dateutil.utils
 import streamlit as st
 import datenbank
 from utils import datum_heute
-
+import auswertung
+import pandas as pd
 
 verbindung = datenbank.verbindung_herstellen()
 datenbank.erstelle_tabelle(verbindung)
@@ -29,11 +29,44 @@ eintraege = datenbank.eintrag_laden(verbindung)
 tabelle = []
 for zeile in eintraege:
     tabelle.append({
-        "ID": zeile[0],
-        "Datum": zeile[1],
-        "Stimmung": zeile[2],
-        "Energie": zeile[3],
-        "Schlaf": zeile[4]
+        "Datum": zeile["datum"],
+        "Stimmung": zeile["stimmung"],
+        "Energie": zeile["energie"],
+        "Schlaf": zeile["schlaf"]
     })
 
 st.table(tabelle)
+
+st.subheader("Auswertung")
+
+if len(eintraege) == 0:
+    st.info("Noch keine Einträge")
+else:
+    durchschnitt_stimmung = auswertung.berechne_durchschnitt(eintraege, "stimmung")
+    durchschnitt_energie = auswertung.berechne_durchschnitt(eintraege, "energie")
+    durchschnitt_schlaf = auswertung.berechne_durchschnitt(eintraege, "schlaf")
+
+    if len(eintraege) >= 2:
+        delta_stimmung = round(eintraege[-1]["stimmung"] - eintraege[-2]["stimmung"], 1)
+        delta_energie = round(eintraege[-1]["energie"] - eintraege[-2]["energie"], 1)
+        delta_schlaf = round(eintraege[-1]["schlaf"] - eintraege[-2]["schlaf"], 1)
+    else:
+        delta_stimmung = None
+        delta_energie = None
+        delta_schlaf = None
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric(label="Stimmung:", value=durchschnitt_stimmung, delta=delta_stimmung)
+    col2.metric(label="Energie:", value=durchschnitt_energie, delta=delta_energie)
+    col3.metric(label="Schlaf:", value=durchschnitt_schlaf, delta=delta_schlaf)
+
+
+st.subheader("Verlauf")
+
+if len(eintraege) == 0:
+    st.info("Noch keine Einträge für den Verlauf.")
+else:
+    df = pd.DataFrame(eintraege)
+    df = df.set_index("datum")
+    st.line_chart(df[["stimmung", "energie", "schlaf"]])
+

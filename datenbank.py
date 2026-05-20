@@ -1,5 +1,8 @@
 import sqlite3
 
+import streamlit
+
+
 def verbindung_herstellen():
     verbindung = sqlite3.connect("nachsorge.db")
     print("Verbindung hergestellt.")
@@ -30,16 +33,14 @@ def eintrag_speichern(verbindung, datum, stimmung, energie, schlaf):
     print(f"Eintrag gespeichert: {datum}, Stimmung {stimmung}, Energie {energie}, Schlaf {schlaf}")
 
 def eintrag_laden(verbindung):
+    verbindung.row_factory = sqlite3.Row
     cursor = verbindung.cursor()
     cursor.execute("SELECT * FROM eintraege")
-    zeilen = cursor.fetchall()
-    for zeile in zeilen:
-       print(f"ID {zeile[0]} | {zeile[1]} | Stimmung {zeile[2]} | Energie {zeile[3]} | Schlaf {zeile[4]}")
-    return zeilen
-
+    return [dict(zeile) for zeile in cursor.fetchall()]
 
 def eintrag_heute_vorhanden(verbindung, datum):
     cursor = verbindung.cursor()
     cursor.execute("SELECT * FROM eintraege WHERE datum = ?", (datum,))
     ergebnis = cursor.fetchone()
     return bool(ergebnis)
+
