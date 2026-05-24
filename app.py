@@ -30,16 +30,23 @@ with tab_checkin:
     energie = st.slider("Energie", min_value=1, max_value=10, value=5)
     schlaf = st.slider("Schlaf", min_value=1, max_value=10, value=5)
 
+    wort = st.text_input("Wie lautet dein Wort für heute?",
+                         placeholder="z.B. erschöpft, ruhig, angespannt ...", max_chars=40)
+
+
+
 
     if st.button("Speichern"):
         datum = datum_heute()
-        if datenbank.eintrag_heute_vorhanden(verbindung, datum):
-            st.warning("Du hast heute bereits eingecheckt")
-        else:
+        try:
             datenbank.eintrag_speichern(verbindung, datum, stimmung, energie, schlaf)
+            if wort:
+                datenbank.wort_speichern(verbindung, datum, wort)
             st.success("Eintrag gespeichert!")
             st.session_state.neu_laden = True
             st.rerun()
+        except Exception:
+            st.warning("Du hast heute bereits eingecheckt")
 
 with tab_auswertung:
 
@@ -78,6 +85,12 @@ with tab_auswertung:
                 })
 
             st.table(tabelle)
+
+        wort_heute = datenbank.wort_laden(verbindung, datum_heute())
+        if wort_heute:
+            st.write(f"Dein wort für heute: **{wort_heute}**")
+        else:
+            st.write("Heute noch kein Wort eingegeben")
 
 with tab_verlauf:
     st.subheader("Verlauf")
