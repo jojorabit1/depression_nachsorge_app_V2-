@@ -23,6 +23,7 @@ with st.sidebar:
     st.write(f"einträge gesamt: {len(st.session_state.eintraege)}")
 
 tab_checkin, tab_verlauf, tab_auswertung = st.tabs(["check-in", "verlauf", "auswertung"])
+
 with tab_checkin:
     st.subheader("Tages-Check-in")
 
@@ -30,23 +31,32 @@ with tab_checkin:
     energie = st.slider("Energie", min_value=1, max_value=10, value=5)
     schlaf = st.slider("Schlaf", min_value=1, max_value=10, value=5)
 
-    wort = st.text_input("Wie lautet dein Wort für heute?",
+    wort_vorhanden = datenbank.wort_laden(verbindung, datum_heute())
+
+    wort = st.text_input("Wie lautet dein Wort für heute?",value=wort_vorhanden or "",
                          placeholder="z.B. erschöpft, ruhig, angespannt ...", max_chars=40)
-
-
 
 
     if st.button("Speichern"):
         datum = datum_heute()
+
         try:
             datenbank.eintrag_speichern(verbindung, datum, stimmung, energie, schlaf)
-            if wort:
-                datenbank.wort_speichern(verbindung, datum, wort)
             st.success("Eintrag gespeichert!")
-            st.session_state.neu_laden = True
-            st.rerun()
         except Exception:
             st.warning("Du hast heute bereits eingecheckt")
+
+        if wort:
+            try:
+                datenbank.wort_speichern(verbindung, datum, wort)
+                st.success("Wort gespeichert!")
+            except Exception as e:
+                st.warning (f"Wort konnte nicht gespeichert werden: {e}")
+
+
+        st.session_state.neu_laden = True
+        st.rerun()
+
 
 with tab_auswertung:
 

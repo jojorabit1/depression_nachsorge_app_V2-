@@ -33,7 +33,7 @@ def erstelle_tabelle(verbindung):
 def wort_speichern(verbindung, datum, wort):
     cursor = verbindung.cursor()
     cursor.execute(
-        "INSERT INTO woerter (datum, wort) VALUES (?, ?)",
+        "INSERT OR REPLACE INTO woerter (datum, wort) VALUES (?, ?)",
         (datum, wort)
     )
     verbindung.commit()
