@@ -5,8 +5,11 @@ import auswertung
 import pandas as pd
 from datetime import date
 
+
 verbindung = datenbank.verbindung_herstellen()
 datenbank.erstelle_tabelle(verbindung)
+datenbank.befuelle_words()
+
 
 if "neu_laden" not in st.session_state:
     st.session_state.neu_laden = True
@@ -33,8 +36,19 @@ with tab_checkin:
 
     wort_vorhanden = datenbank.wort_laden(verbindung, datum_heute())
 
-    wort = st.text_input("Wie lautet dein Wort für heute?",value=wort_vorhanden or "",
-                         placeholder="z.B. erschöpft, ruhig, angespannt ...", max_chars=40)
+    eingabe = st.text_input(
+        "Wie lautet dein Wort für heute?",
+        value=wort_vorhanden or "",
+        placeholder="z.B. erschöpft, ruhig, angespannt ...",
+        max_chars=40
+    )
+
+    vorschlaege = datenbank.fuzzy_suche(eingabe)
+
+    if vorschlaege:
+        wort = st.selectbox("Meinst du...?", vorschlaege)
+    else:
+        wort = eingabe
 
 
     if st.button("Speichern"):
