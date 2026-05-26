@@ -26,3 +26,20 @@ def zaehle_kritische_tage(woche, schluessel, schwellenwert):
         if tag[schluessel] < schwellenwert:
             kritisch = kritisch + 1
     return kritisch
+
+def wort_stimmung_korrelation(wort_stimmung_liste):
+    sammlung = {}
+
+    for eintrag in wort_stimmung_liste:
+        wort = eintrag["wort"]
+        stimmung = eintrag["stimmung"]
+
+        if wort not in sammlung:
+            sammlung[wort] = []
+            sammlung[wort].append(stimmung)
+
+    ergebnis = {}
+    for wort, werte in sammlung.items():
+        ergebnis[wort] = round(sum(werte) / len(werte), 1)
+
+    return ergebnis

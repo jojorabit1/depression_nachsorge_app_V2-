@@ -4,6 +4,7 @@ from utils import datum_heute, datum_anzeige
 import auswertung
 import pandas as pd
 from datetime import date
+import altair as alt
 
 
 verbindung = datenbank.verbindung_herstellen()
@@ -43,7 +44,7 @@ with tab_checkin:
         max_chars=40
     )
 
-    vorschlaege = datenbank.fuzzy_suche(eingabe)
+    vorschlaege = datenbank.fuzzy_suche(verbindung, eingabe)
 
     if vorschlaege:
         wort = st.selectbox("Meinst du...?", vorschlaege)
@@ -63,6 +64,7 @@ with tab_checkin:
         if wort:
             try:
                 datenbank.wort_speichern(verbindung, datum, wort)
+                datenbank.user_word_speichern(verbindung, wort)
                 st.success("Wort gespeichert!")
             except Exception as e:
                 st.warning (f"Wort konnte nicht gespeichert werden: {e}")
@@ -116,6 +118,43 @@ with tab_auswertung:
         else:
             st.write("Heute noch kein Wort eingegeben")
 
+    st.subheader("Häufigste Wörter")
+    woerter = datenbank.haufigste_woerter(verbindung, anzahl=5)
+
+    if not woerter:
+        st.info("Noch keine Wörter gespeichert")
+    else:
+        df_woerter = pd.DataFrame(woerter)
+        chart = alt.Chart(df_woerter).mark_bar().encode(
+            x="wort",
+            y=alt.Y(
+                "use_count:Q",
+                scale=alt.Scale(domainMin=0),
+                axis=alt.Axis(tickMinStep=1, format="d", tickCount=max(df_woerter["use_count"]))
+            )
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    st.subheader("Wörter im verlauf")
+    wort_stimmung = datenbank.wort_stimmung_laden(verbindung)
+
+    if not wort_stimmung:
+        st.info("Noch keine Daten für Wortmuster")
+    else:
+        df_muster = pd.DataFrame(wort_stimmung)
+        st.dataframe(df_muster)
+
+    st.subheader("wort ↔ stimmung")
+    korrelation = auswertung.wort_stimmung_korrelation(wort_stimmung)
+
+    if not korrelation:
+        st.info("noch keine Daten")
+    else:
+        df_korrelation = pd.DataFrame(
+            korrelation.items(),
+            columns=["wort", "ø stimmung"]
+        )
+        st.dataframe(df_korrelation)
 with tab_verlauf:
     st.subheader("Verlauf")
 

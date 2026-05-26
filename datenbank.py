@@ -4,6 +4,7 @@ from difflib import get_close_matches
 
 def verbindung_herstellen():
     verbindung = sqlite3.connect("nachsorge.db")
+    verbindung.row_factory = sqlite3.Row
     print("Verbindung hergestellt.")
     return verbindung
 
@@ -83,15 +84,14 @@ def befuelle_words():
             )
         conn.commit()
 
-def user_word_speichern(wort):
-    with verbindung_herstellen() as conn:
-        cursor = conn.cursor()
+def user_word_speichern(verbindung, wort):
+        cursor = verbindung.cursor()
         cursor.execute("""
             INSERT INTO user_words (wort, use_count)
             VALUES (?, 1) 
             ON CONFLICT(wort) DO UPDATE SET use_count = use_count + 1
         """, (wort,))
-        conn.commit()
+        verbindung.commit()
 
 
 
@@ -115,14 +115,35 @@ def wort_laden(verbindung, datum):
     return None
 
 
-def fuzzy_suche(eingabe):
+def fuzzy_suche(verbindung, eingabe):
     if len(eingabe) <2:
         return []
-    with verbindung_herstellen() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT wort FROM words")
-        words = [zeile[0] for zeile in cursor.fetchall()]
-        cursor.execute("SELECT wort FROM user_words")
-        user_words = [zeile[0] for zeile in cursor.fetchall()]
+    cursor = verbindung.cursor()
+    cursor.execute("SELECT wort FROM words")
+    words = [zeile[0] for zeile in cursor.fetchall()]
+    cursor.execute("SELECT wort FROM user_words")
+    user_words = [zeile[0] for zeile in cursor.fetchall()]
     alle_woerter = list(set(words + user_words))
     return get_close_matches(eingabe, alle_woerter, n=5, cutoff=0.3)
+
+def haufigste_woerter(verbindung, anzahl=5):
+    cursor = verbindung.cursor()
+    cursor.execute("""
+        SELECT wort, use_count 
+        FROM user_words 
+        ORDER BY use_count DESC 
+        LIMIT ?"""
+        , (anzahl,)
+    )
+    ergebnisse = cursor.fetchall()
+    return [dict(zeile) for zeile in ergebnisse]
+
+def wort_stimmung_laden(verbindung):
+    cursor = verbindung.cursor()
+    cursor.execute("""
+        SELECT woerter.wort, eintraege.stimmung
+        From woerter
+        JOIN eintraege ON woerter.datum = eintraege.datum
+    """)
+    ergebnisse = cursor.fetchall()
+    return [dict(zeile) for zeile in ergebnisse]
