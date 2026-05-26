@@ -147,3 +147,17 @@ def wort_stimmung_laden(verbindung):
     """)
     ergebnisse = cursor.fetchall()
     return [dict(zeile) for zeile in ergebnisse]
+
+def fruehwarnzeichen_laden(verbindung, min_anzahl=3, schwellenwert=5.0):
+    cursor = verbindung.cursor()
+    cursor.execute("""
+        SELECT w.wort, AVG(e.stimmung) AS avg_stimmung, COUNT(*) AS anzahl
+        FROM eintraege e
+        JOIN woerter w ON e.datum = w.datum
+        GROUP BY w.wort
+        HAVING anzahl >= ? AND avg_stimmung < ?
+        ORDER BY avg_stimmung ASC
+    """, (min_anzahl, schwellenwert)
+    )
+    ergebnisse = cursor.fetchall()
+    return [dict(zeile) for zeile in ergebnisse]

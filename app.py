@@ -155,6 +155,22 @@ with tab_auswertung:
             columns=["wort", "ø stimmung"]
         )
         st.dataframe(df_korrelation)
+
+    st.subheader("Frühwarnzeichen")
+    warnzeichen = datenbank.fruehwarnzeichen_laden(verbindung)
+    ergebnis = auswertung.eskalationsstufe(warnzeichen)
+
+    woerter_text = ", ".join(ergebnis["woerter"]) if ergebnis["woerter"] else ""
+
+    if ergebnis["stufe"] == 0:
+        st.success(f"{ergebnis['titel']}: {ergebnis['nachricht']}")
+    elif ergebnis["stufe"] == 1:
+        st.info(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
+    elif ergebnis["stufe"] == 2:
+        st.warning(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
+    else:
+        st.error(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
+
 with tab_verlauf:
     st.subheader("Verlauf")
 

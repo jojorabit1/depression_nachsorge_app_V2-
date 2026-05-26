@@ -43,3 +43,38 @@ def wort_stimmung_korrelation(wort_stimmung_liste):
         ergebnis[wort] = round(sum(werte) / len(werte), 1)
 
     return ergebnis
+
+def eskalationsstufe(warnzeichen):
+    anzahl = len(warnzeichen)
+    woerter = [w["wort"] for w in warnzeichen]
+
+    if anzahl == 0:
+        return {
+            "stufe": 0,
+            "titel": "alles ist stabil",
+            "nachricht": "Bei dir gibt es keine auffallenden Wörter",
+            "woerter": []
+        }
+    elif anzahl == 1:
+        return {
+            "stufe": 1,
+            "titel": "es entsteht ein Muster",
+            "nachricht": "Ein Wort taucht häufig in schwierigen Momenten auf.",
+            "woerter": woerter
+        }
+    elif anzahl == 2:
+        return {
+            "stufe": 2,
+            "titel": "erhöhte aufmerksamkeit",
+            "nachricht": "zwei wörter sind mit niedrigen stimmungswerten verbunden. "
+                         "Es könnte hilfreich sein, das mit jemandem zu besprechen",
+            "woerter": woerter
+        }
+    else:
+        return {
+            "stufe": 3,
+            "titel": "bitte sprich mit jemandem",
+            "nachricht": "mehrere zeichen gleichzeitig" 
+                         " — ein gespräch mit deiner therapeutin oder deinem therapeuten wäre jetzt sinnvoll",
+            "woerter": woerter
+        }
