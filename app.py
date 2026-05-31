@@ -70,6 +70,38 @@ def design_system_laden():
         .stButton > button:hover {
             background-color: #1E4450;
         }
+        
+        .badge-gruen {
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge-blau {
+            background-color: #d0e8f2;
+            color: #0c4a6e;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge-gelb {
+            background-color: #fff3cd;
+            color: #856404;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge-rot {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -251,14 +283,20 @@ with tab_auswertung:
 
     woerter_text = ", ".join(ergebnis["woerter"]) if ergebnis["woerter"] else ""
 
-    if ergebnis["stufe"] == 0:
-        st.success(f"{ergebnis['titel']}: {ergebnis['nachricht']}")
-    elif ergebnis["stufe"] == 1:
-        st.info(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
-    elif ergebnis["stufe"] == 2:
-        st.warning(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
-    else:
-        st.error(f"{ergebnis['titel']}: {ergebnis['nachricht']} ({woerter_text})")
+    stufen_mapping = {
+        0: ("gruen", "👌"),
+        1: ("blau", "ℹ️"),
+        2: ("gelb", "⚠️"),
+        3: ("rot", "🛑"),
+    }
+    stufe_css, icon = stufen_mapping[ergebnis["stufe"]]
+
+    st.markdown(f"""
+        <div class="badge-{stufe_css}">
+            <p class="kartentitel">{icon} {ergebnis['titel']}</p>
+            <p class="klein">{ergebnis['nachricht']} {woerter_text}</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 with tab_verlauf:
     st.subheader("Verlauf")
