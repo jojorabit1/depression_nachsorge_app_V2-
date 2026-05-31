@@ -74,15 +74,14 @@ GLOBALE_WOERTER = [
     "abwesend", "benebelt", "konfus", "zerstreut", "distanziert"
 ]
 
-def befuelle_words():
-    with verbindung_herstellen() as conn:
-        cursor = conn.cursor()
+def befuelle_words(verbindung):
+        cursor = verbindung.cursor()
         for wort in GLOBALE_WOERTER:
             cursor.execute(
                 "INSERT OR IGNORE INTO words (wort) VALUES (?)",
                 (wort,)
             )
-        conn.commit()
+        verbindung.commit()
 
 def user_word_speichern(verbindung, wort):
         cursor = verbindung.cursor()
@@ -98,9 +97,18 @@ def user_word_speichern(verbindung, wort):
 def eintrag_laden(verbindung):
     verbindung.row_factory = sqlite3.Row
     cursor = verbindung.cursor()
-    cursor.execute("SELECT * FROM eintraege")
-    return [dict(zeile) for zeile in cursor.fetchall()]
+    cursor.execute("SELECT * FROM eintraege ORDER BY datum DESC LIMIT 1")
+    ergebnis = cursor.fetchone()
+    if ergebnis:
+        return dict(ergebnis)
+    return None
 
+def alle_eintraege_laden(verbindung):
+    verbindung.row_factory = sqlite3.Row
+    cursor = verbindung.cursor()
+    cursor.execute("SELECT * FROM eintraege ORDER BY datum ASC")
+    ergebnisse = cursor.fetchall()
+    return [dict(zeile) for zeile in ergebnisse]
 
 def wort_laden(verbindung, datum):
     verbindung.row_factory = sqlite3.Row

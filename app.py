@@ -6,17 +6,85 @@ import pandas as pd
 from datetime import date
 import altair as alt
 
+def design_system_laden():
+    st.markdown("""
+    <style>
+        /* ===== DESIGN SYSTEM · NACHSORGE-APP ===== */
 
+        /* Hintergrundfarbe */
+        .stApp {
+            background-color: #F7F5F0;
+        }
+
+        /* Globale Schrift */
+        html, body, [class*="css"] {
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            font-size: 15px;
+            color: #1A1A1A;
+        }
+
+        /* Sidebar Hintergrund */
+        section[data-testid="stSidebar"] {
+            background-color: #EEE9E0;
+        }
+
+        /* Karten-Stil */
+        .karte {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+
+        /* Akzentfarbe als Textklasse */
+        .teal {
+            color: #2A5C68;
+            font-weight: 600;
+        }
+        
+        /* karten Überschrift */
+        .kartentitel {
+            color: #224A54;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        /* Fließtext klein */
+        .klein {
+            font-size: 13px;
+            color: #555555;
+        }
+
+        /* Button-Stil überschreiben */
+        .stButton > button {
+            background-color: #2A5C68;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-size: 15px;
+            width: 100%;
+        }
+
+        .stButton > button:hover {
+            background-color: #1E4450;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+design_system_laden()
 verbindung = datenbank.verbindung_herstellen()
 datenbank.erstelle_tabelle(verbindung)
-datenbank.befuelle_words()
+datenbank.befuelle_words(verbindung)
 
 
 if "neu_laden" not in st.session_state:
     st.session_state.neu_laden = True
 
 if st.session_state.neu_laden:
-    st.session_state.eintraege = datenbank.eintrag_laden(verbindung)
+    st.session_state.eintraege = datenbank.alle_eintraege_laden(verbindung)
     st.session_state.neu_laden = False
 
 with st.sidebar:
@@ -27,6 +95,27 @@ with st.sidebar:
     st.write(f"einträge gesamt: {len(st.session_state.eintraege)}")
 
 tab_checkin, tab_verlauf, tab_auswertung = st.tabs(["check-in", "verlauf", "auswertung"])
+
+
+letzter_eintrag = datenbank.eintrag_laden(verbindung)
+
+if letzter_eintrag:
+    impuls = auswertung.tagesimpuls_generieren(
+        stimmung=letzter_eintrag["stimmung"],
+        energie=letzter_eintrag["energie"],
+        schlaf=letzter_eintrag["schlaf"]
+    )
+
+    st.markdown(f"""
+    <div class="karte">
+        <p class="kartentitel">Dein Tagesimpuls</p>
+        <p class="teal">{impuls['ikone']} {impuls['aktion']}</p>
+        <p class="klein">{impuls['begruendung']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    st.info("📋 Noch kein Check-in vorhanden — trag heute deinen ersten ein.")
+
 
 with tab_checkin:
     st.subheader("Tages-Check-in")
@@ -56,7 +145,7 @@ with tab_checkin:
         datum = datum_heute()
 
         try:
-            datenbank.eintrag_speichern(verbindung, datum, stimmung, energie, schlaf)
+            datenbank.alle_eintraege_laden(verbindung, datum, stimmung, energie, schlaf)
             st.success("Eintrag gespeichert!")
         except Exception:
             st.warning("Du hast heute bereits eingecheckt")

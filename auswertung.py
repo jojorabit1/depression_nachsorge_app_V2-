@@ -1,5 +1,86 @@
 from utils import sicher_teilen
 
+AKTIONSKATALOG = {
+    "schlaf": [
+        {"aktion": "Heute Abend Handy ab 21 Uhr weglegen", "energie_min": 1, "ikone": "🌙"},
+        {"aktion": "Kurzes Entspannungsritual vor dem Schlafen einplanen", "energie_min": 1, "ikone": "🕯️"},
+        {"aktion": "Zimmer vor dem Schlafen kurz lüften", "energie_min": 1, "ikone": "🪟"},
+        {"aktion": "Morgen zur gleichen Zeit aufstehen wie heute", "energie_min": 1, "ikone": "⏰"},
+        {"aktion": "Heute Abend keinen Kaffee mehr nach 14 Uhr", "energie_min": 1, "ikone": "☕"},
+        {"aktion": "10 Minuten ruhige Musik hören vor dem Schlafen", "energie_min": 1, "ikone": "🎵"},
+    ],
+    "bewegung_leicht": [
+        {"aktion": "5 Minuten strecken oder dehnen", "energie_min": 1, "ikone": "🧘"},
+        {"aktion": "10 Minuten spazieren gehen", "energie_min": 1, "ikone": "🚶"},
+        {"aktion": "Einmal die Treppe statt den Aufzug nehmen", "energie_min": 1, "ikone": "🪜"},
+        {"aktion": "Drei Minuten frische Luft auf dem Balkon oder vor der Tür", "energie_min": 1, "ikone": "🌬️"},
+        {"aktion": "Beim nächsten Telefonat aufstehen und dabei bewegen", "energie_min": 1, "ikone": "📱"},
+        {"aktion": "Kurz die Schultern rollen und tief durchatmen", "energie_min": 1, "ikone": "💨"},
+    ],
+    "bewegung_mittel": [
+        {"aktion": "20 Minuten zügig spazieren gehen", "energie_min": 3, "ikone": "🌿"},
+        {"aktion": "Kurze Runde um den Block drehen", "energie_min": 3, "ikone": "🏙️"},
+        {"aktion": "30 Minuten Fahrrad fahren", "energie_min": 4, "ikone": "🚴"},
+        {"aktion": "15 Minuten Joggen im eigenen Tempo", "energie_min": 4, "ikone": "🏃"},
+        {"aktion": "Kurzes Körpergewichtstraining: 3 Übungen, je 10 Wiederholungen", "energie_min": 3, "ikone": "💪"},
+        {"aktion": "Schwimmen gehen oder ins Wasser", "energie_min": 4, "ikone": "🏊"},
+    ],
+    "kognition": [
+        {"aktion": "Drei Dinge aufschreiben, die heute gut waren", "energie_min": 1, "ikone": "✏️"},
+        {"aktion": "10 Minuten lesen — egal was", "energie_min": 2, "ikone": "📖"},
+        {"aktion": "Einen kleinen Plan für morgen früh aufschreiben", "energie_min": 1, "ikone": "📋"},
+        {"aktion": "Einen Gedanken, der belastet, kurz aufschreiben und weglegen", "energie_min": 1, "ikone": "🗒️"},
+        {"aktion": "Eine Sache benennen, auf die du heute stolz sein kannst", "energie_min": 1, "ikone": "🌟"},
+        {"aktion": "5 Minuten bewusstes Atemübung: 4 Sekunden ein, 6 Sekunden aus", "energie_min": 1, "ikone": "🫁"},
+        {"aktion": "Einen kleinen Erfolg von heute laut aussprechen", "energie_min": 1, "ikone": "🗣️"},
+    ],
+    "soziales": [
+        {"aktion": "Eine Person kurz anschreiben", "energie_min": 1, "ikone": "💬"},
+        {"aktion": "Jemanden anrufen, den du magst", "energie_min": 2, "ikone": "📞"},
+        {"aktion": "Einer Person heute ein echtes Kompliment machen", "energie_min": 1, "ikone": "🤝"},
+        {"aktion": "Jemandem schreiben, den du lange nicht gehört hast", "energie_min": 2, "ikone": "✉️"},
+        {"aktion": "Mit einer Person zusammen etwas essen oder Kaffee trinken", "energie_min": 3, "ikone": "☕"},
+        {"aktion": "Einem Menschen in deiner Nähe kurz zuhören", "energie_min": 2, "ikone": "👂"},
+    ],
+    "ernaehrung": [
+        {"aktion": "Ein Glas Wasser trinken — jetzt, sofort", "energie_min": 1, "ikone": "💧"},
+        {"aktion": "Heute eine Mahlzeit mit Gemüse einplanen", "energie_min": 1, "ikone": "🥦"},
+        {"aktion": "Frühstück nicht überspringen, auch wenn klein", "energie_min": 1, "ikone": "🍳"},
+        {"aktion": "Heute bewusst und ohne Bildschirm essen", "energie_min": 1, "ikone": "🍽️"},
+        {"aktion": "Einen Snack vorbereiten, der morgen früh bereitliegt", "energie_min": 1, "ikone": "🍎"},
+    ],
+}
+def tagesimpuls_generieren(stimmung, energie, schlaf):
+    if schlaf < 5:
+        kategorie = "schlaf"
+    elif energie <= 2 and stimmung <= 3:
+        kategorie = "ernaehrung"
+    elif energie <= 2:
+        kategorie = "bewegung_leicht"
+    elif stimmung <= 3:
+        kategorie = "soziales"
+    else:
+        kategorie = "bewegung_mittel"
+
+    aktion = AKTIONSKATALOG[kategorie][0]
+
+    return {
+        "aktion": aktion["aktion"],
+        "kategorie": kategorie,
+        "ikone": aktion["ikone"],
+        "begruendung": begruendung_erstellen(kategorie)
+    }
+
+def begruendung_erstellen(kategorie):
+    begruendungen = {
+        "schlaf": "Dein Schlaf war heute Nacht kurz. Eine kleine Schlafhygiene-Gewohnheit kann viel bewirken.",
+        "bewegung_leicht": "Auch minimale Bewegung aktiviert den Kreislauf und hebt die Stimmung messbar.",
+        "bewegung_mittel": "Regelmäßige Bewegung ist eine der wirksamsten Maßnahmen gegen depressive Verstimmung.",
+        "kognition": "Ein kleiner kognitiver Anker hilft, aus dem Gedankenkarussell herauszukommen.",
+        "soziales": "Sozialer Kontakt — auch kurz — wirkt nachweislich stimmungsaufhellend.",
+        "ernaehrung": "Kleine Ernährungsgewohnheiten stabilisieren Energie und Stimmung über den Tag.",
+    }
+    return begruendungen[kategorie]
 def berechne_durchschnitt(woche, schluessel):
     try:
         werte = []
@@ -78,3 +159,4 @@ def eskalationsstufe(warnzeichen):
                          " — ein gespräch mit deiner therapeutin oder deinem therapeuten wäre jetzt sinnvoll",
             "woerter": woerter
         }
+
