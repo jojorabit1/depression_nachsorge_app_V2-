@@ -1,5 +1,6 @@
 import sqlite3
 from difflib import get_close_matches
+from datetime import datetime
 
 
 def verbindung_herstellen():
@@ -40,8 +41,29 @@ def erstelle_tabelle(verbindung):
             use_count   INTEGER NOT NULL DEFAULT 1
             )
         """)
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+            id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+            name                    TEXT NOT NULL,
+            ansprache               TEXT,
+            passwort                TEXT NOT NULL,
+            onboarding_complete     INTEGER DEFAULT 0,
+            created_at              TEXT
+            )
+        """)
     verbindung.commit()
     print("Tabelle bereit")
+
+
+def registriere_user(verbindung, name, ansprache, passwort):
+    created_at = datetime.now().isoformat()
+    cursor = verbindung.cursor()
+    cursor.execute(
+        "INSERT INTO users (name, ansprache, passwort, created_at) VALUES (?, ?, ?, ?)",
+        (name, ansprache, passwort, created_at)
+    )
+    verbindung.commit()
+    return cursor.lastrowid
 
 def wort_speichern(verbindung, datum, wort):
     cursor = verbindung.cursor()
@@ -51,6 +73,7 @@ def wort_speichern(verbindung, datum, wort):
     )
     verbindung.commit()
 
+
 def eintrag_speichern(verbindung, datum, stimmung, energie, schlaf):
     cursor = verbindung.cursor()
     cursor.execute("""
@@ -59,7 +82,6 @@ def eintrag_speichern(verbindung, datum, stimmung, energie, schlaf):
     """, (datum, stimmung, energie, schlaf))
     verbindung.commit()
     print(f"Eintrag gespeichert: {datum}, Stimmung {stimmung}, Energie {energie}, Schlaf {schlaf}")
-
 
 GLOBALE_WOERTER = [
     "erschöpft", "müde", "leer", "schwer", "bleiern",
@@ -74,6 +96,7 @@ GLOBALE_WOERTER = [
     "abwesend", "benebelt", "konfus", "zerstreut", "distanziert"
 ]
 
+
 def befuelle_words(verbindung):
         cursor = verbindung.cursor()
         for wort in GLOBALE_WOERTER:
@@ -84,18 +107,23 @@ def befuelle_words(verbindung):
         verbindung.commit()
 
 def user_word_speichern(verbindung, wort):
-        cursor = verbindung.cursor()
-        cursor.execute("""
-            INSERT INTO user_words (wort, use_count)
-            VALUES (?, 1) 
-            ON CONFLICT(wort) DO UPDATE SET use_count = use_count + 1
-        """, (wort,))
-        verbindung.commit()
+    cursor = verbindung.cursor()
+    cursor.execute("""
+        INSERT INTO user_words (wort, use_count)
+        VALUES (?, 1) 
+        ON CONFLICT(wort) DO UPDATE SET use_count = use_count + 1
+    """, (wort,))
+    verbindung.commit()
 
-
+def get_user(verbindung):
+    cursor = verbindung.cursor()
+    cursor.execute("SELECT * FROM users LIMIT 1")
+    ergebnis = cursor.fetchone()
+    if ergebnis:
+        return dict(ergebnis)
+    return None
 
 def eintrag_laden(verbindung):
-    verbindung.row_factory = sqlite3.Row
     cursor = verbindung.cursor()
     cursor.execute("SELECT * FROM eintraege ORDER BY datum DESC LIMIT 1")
     ergebnis = cursor.fetchone()
@@ -104,14 +132,12 @@ def eintrag_laden(verbindung):
     return None
 
 def alle_eintraege_laden(verbindung):
-    verbindung.row_factory = sqlite3.Row
     cursor = verbindung.cursor()
     cursor.execute("SELECT * FROM eintraege ORDER BY datum ASC")
     ergebnisse = cursor.fetchall()
     return [dict(zeile) for zeile in ergebnisse]
 
 def wort_laden(verbindung, datum):
-    verbindung.row_factory = sqlite3.Row
     cursor = verbindung.cursor()
     cursor.execute(
         "SELECT wort FROM woerter WHERE datum = ?",
