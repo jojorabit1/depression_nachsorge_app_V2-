@@ -6,6 +6,7 @@ from design import design_system_laden
 import pandas as pd
 import altair as alt
 from datetime import date
+import onboarding
 
 
 design_system_laden()
@@ -19,7 +20,7 @@ if "onboarding_screen" not in st.session_state:
 user = datenbank.get_user(verbindung)
 
 if user is None or user["onboarding_complete"] == 0:
-    st.write("Onboaring")
+    onboarding.zeige_onboarding(verbindung)
 else:
     if "neu_laden" not in st.session_state:
         st.session_state.neu_laden = True

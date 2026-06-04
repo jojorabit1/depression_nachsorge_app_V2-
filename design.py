@@ -46,7 +46,7 @@ def design_system_laden():
 
         /* Content-Bereich */
         .block-container {
-            padding-top: 1rem !important;
+            padding-top: 0rem !important;
             padding-bottom: 80px !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
@@ -93,6 +93,16 @@ def design_system_laden():
             font-family: var(--sans);
             font-weight: 500;
             height: 54px;
+        }
+        
+        [data-testid="stElementContainer"]:has([data-testid="stBaseButton-secondary"]) {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        [data-testid="stBaseButton-secondary"] {
+            width: auto !important;
+            min-width: 120px !important;
         }
 
         .stButton > button:hover {
@@ -156,7 +166,8 @@ def design_system_laden():
             padding: 8px 16px !important;
             gap: 4px;
             margin: 0 !important;
-
+        }
+        
         div[role="radiogroup"] label {
             flex: 1;
             width: 25%;
@@ -193,5 +204,61 @@ def design_system_laden():
             gap: 0.3rem !important;
         }
         
+        .onboarding-screen {
+            text-align: center;
+            padding: 48px 24px
+        }
+        
+        .onboarding-headline {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        
+        .onboarding-body {
+            font-size: 17px;
+            color: var(--text-mid);
+            line-height: 1.6;
+            margin-bottom: 40px
+        }    
+         
+        .onboarding-weiter-btn {
+            position: fixed;
+            bottom: 24px;
+            left: 16px;
+            right: 16px;
+        }
+         
+         .splash-screen {
+            margin: -1rem -1rem 0 -1rem;
+        }
+        
+        .splash-top {
+            background-color: var(--primary);
+            height: 30vh;
+        }
+        
+        .splash-wave {
+            background-color: var(--bg);
+            margin-top: -2px;
+        }
+        
+        .splash-wave svg {
+            display: block;
+            width: 100%;
+        }
+        
+        .splash-bottom {
+            padding: 24px 24px 100px 24px;
+            text-align: center;
+        }       
+        
+        .splash-bottom .stButton > button {
+            width: auto;
+            min-width: 120px;
+            float: right;
+        }
     </style>
     """, unsafe_allow_html=True)
