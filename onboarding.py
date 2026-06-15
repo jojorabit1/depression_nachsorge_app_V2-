@@ -1,4 +1,6 @@
 import streamlit as st
+import datenbank
+
 
 def zeige_onboarding(verbindung):
     screen = st.session_state["onboarding_screen"]
@@ -12,6 +14,8 @@ def zeige_onboarding(verbindung):
     elif screen == 3:
         sichere_daten()
     elif screen == 4:
+        registrierung(verbindung)
+    elif screen == 5:
         starten()
 
 def herzlich_willkommen():
@@ -103,6 +107,40 @@ def sichere_daten():
             st.rerun()
     else:
         st.button("Weiter", disabled=True)
+
+def registrierung(verbindung):
+    st.markdown(f"""
+            <div class="splash-screen">
+            <div class="splash-top"></div>
+            <div class="splash-wave">
+                <svg viewBox="0 0 390 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,30 Q97,60 195,30 Q293,0 390,30 L390,0 L0,0 Z" fill="#2A4D5C"/>
+                </svg>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    nachname                = st.text_input("Nachname")
+    vorname                 = st.text_input("Vorname")
+    ansprache               = st.text_input("Wie willst du angesprochen werden?")
+    email                   = st.text_input("Wie lautet dein E-mail Adresse?")
+    passwort                = st.text_input("Passwort", type="password")
+    passwort_wiederholen    = st.text_input("Passwort wiederholen", type="password")
+
+    if st.button("Konto erstellen"):
+        if not nachname or not vorname or not email or not passwort:
+            st.error("Bitte alle Pflichfelder ausfüllen")
+        elif passwort != passwort_wiederholen:
+            st.error("Passwörter sind nicht identisch")
+        else:
+            try:
+                datenbank.registriere_user(verbindung, nachname, vorname, ansprache, email, passwort)
+                st.success("Konto erstellt")
+                st.session_state["onboarding_screen"] += 1
+                st.rerun()
+            except Exception:
+                st.warning("Du hast bereits ein Koto bei uns")
+
+
 
 def starten():
     st.markdown(f"""

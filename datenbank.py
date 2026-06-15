@@ -44,8 +44,10 @@ def erstelle_tabelle(verbindung):
     cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
             id                      INTEGER PRIMARY KEY AUTOINCREMENT,
-            name                    TEXT NOT NULL,
+            nachname                TEXT NOT NULL,
+            vorname                 TEXT NOT NULL,
             ansprache               TEXT,
+            email                   TEXT NOT NULL UNIQUE,
             passwort                TEXT NOT NULL,
             onboarding_complete     INTEGER DEFAULT 0,
             created_at              TEXT
@@ -55,12 +57,12 @@ def erstelle_tabelle(verbindung):
     print("Tabelle bereit")
 
 
-def registriere_user(verbindung, name, ansprache, passwort):
+def registriere_user(verbindung, nachname, vorname, ansprache, email, passwort):
     created_at = datetime.now().isoformat()
     cursor = verbindung.cursor()
     cursor.execute(
-        "INSERT INTO users (name, ansprache, passwort, created_at) VALUES (?, ?, ?, ?)",
-        (name, ansprache, passwort, created_at)
+        "INSERT INTO users (nachname, vorname, ansprache,email, passwort, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (nachname, vorname, ansprache, email, passwort, created_at)
     )
     verbindung.commit()
     return cursor.lastrowid
