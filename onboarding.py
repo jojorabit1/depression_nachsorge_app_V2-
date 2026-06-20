@@ -16,7 +16,8 @@ def zeige_onboarding(verbindung):
     elif screen == 4:
         registrierung(verbindung)
     elif screen == 5:
-        starten()
+        bestaetigung()
+
 
 def herzlich_willkommen():
     st.markdown("""
@@ -134,6 +135,7 @@ def registrierung(verbindung):
         else:
             try:
                 datenbank.registriere_user(verbindung, nachname, vorname, ansprache, email, passwort)
+                st.session_state["ansprache"] = ansprache
                 st.success("Konto erstellt")
                 st.session_state["onboarding_screen"] += 1
                 st.rerun()
@@ -141,24 +143,23 @@ def registrierung(verbindung):
                 st.warning("Du hast bereits ein Koto bei uns")
 
 
-
-def starten():
+def bestaetigung():
+    ansprache = st.session_state["ansprache"]
     st.markdown(f"""
-        <div class="splash-screen">
-        <div class="splash-top"></div>
-        <div class="splash-wave">
-            <svg viewBox="0 0 390 60" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,30 Q97,60 195,30 Q293,0 390,30 L390,0 L0,0 Z" fill="#2A4D5C"/>
-            </svg>
-        </div>
-            <div class="splash-bottom">
-                <p class="onboarding-headline">Lass uns starten</p>
-                <p class="onboarding-body">Im nächsten Schritt beantwortest du ein paar kurze Fragen zu deiner aktuellen Situation — etwa 5 Minuten. </p>
-                <p class="onboarding-body">Dann erstellen wir gemeinsam deinen persönlichen Krisenplan.</p>
+            <div class="splash-screen">
+            <div class="splash-top"></div>
+            <div class="splash-wave">
+                <svg viewBox="0 0 390 60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,30 Q97,60 195,30 Q293,0 390,30 L390,0 L0,0 Z" fill="#2A4D5C"/>
+                </svg>
             </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+            <div class="splash-bottom">
+                <p class="onboarding-headline">Hallo {ansprache}</p>
+                <p class="onboarding-body">Dein Konto ist bereit. In den nächsten Schritten richten wir gemeinsam deine persönliche App ein.</p>
+                <p class="onboarding-body">Beantworte bitte zuerst ein paar kurze Fragen zu deiner aktuellen Situation - das dauert ca. 5 Minuten. </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     if st.button("Jetzt starten"):
         st.session_state["onboarding_screen"] += 1
         st.rerun()
