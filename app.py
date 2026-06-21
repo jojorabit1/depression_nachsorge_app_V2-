@@ -15,7 +15,7 @@ datenbank.erstelle_tabelle(verbindung)
 datenbank.befuelle_words(verbindung)
 
 if "onboarding_screen" not in st.session_state:
-    st.session_state["onboarding_screen"] = 0
+    st.session_state["onboarding_screen"] = 4
 
 user = datenbank.get_user(verbindung)
 

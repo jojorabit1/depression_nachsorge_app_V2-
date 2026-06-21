@@ -1,5 +1,7 @@
 import streamlit as st
 import datenbank
+import re
+import sqlite3
 
 
 def zeige_onboarding(verbindung):
@@ -14,8 +16,10 @@ def zeige_onboarding(verbindung):
     elif screen == 3:
         sichere_daten()
     elif screen == 4:
-        registrierung(verbindung)
+        registrierung_name(verbindung)
     elif screen == 5:
+        registrierung_kontakt(verbindung)
+    elif screen == 6:
         bestaetigung()
 
 
@@ -109,7 +113,7 @@ def sichere_daten():
     else:
         st.button("Weiter", disabled=True)
 
-def registrierung(verbindung):
+def registrierung_name(verbindung):
     st.markdown(f"""
             <div class="splash-screen">
             <div class="splash-top"></div>
@@ -123,28 +127,68 @@ def registrierung(verbindung):
     nachname                = st.text_input("Nachname")
     vorname                 = st.text_input("Vorname")
     ansprache               = st.text_input("Wie willst du angesprochen werden?")
-    email                   = st.text_input("Wie lautet dein E-mail Adresse?")
-    passwort                = st.text_input("Passwort", type="password")
-    passwort_wiederholen    = st.text_input("Passwort wiederholen", type="password")
-
-    if st.button("Konto erstellen"):
-        if not nachname or not vorname or not email or not passwort:
+    if st.button("weiter"):
+        if not nachname or not vorname:
             st.error("Bitte alle Pflichfelder ausfüllen")
-        elif passwort != passwort_wiederholen:
+        else:
+            st.session_state["nachname"] = nachname
+            st.session_state["vorname"] = vorname
+            st.session_state["ansprache"] = ansprache
+            st.session_state["onboarding_screen"] += 1
+            st.rerun()
+def registrierung_kontakt (verbindung):
+    st.markdown(f"""
+                <div class="splash-screen">
+                <div class="splash-top"></div>
+                <div class="splash-wave">
+                    <svg viewBox="0 0 390 60" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,30 Q97,60 195,30 Q293,0 390,30 L390,0 L0,0 Z" fill="#2A4D5C"/>
+                    </svg>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    email = st.text_input("Wie lautet dein E-mail Adresse?")
+    if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        st.error("Bitte eine gültige Email eingeben")
+    passwort = st.text_input("Passwort", type="password")
+    if passwort:
+        checks = [
+            (len(passwort) >= 8, "Mindestens 8 Zeichen"),
+            (any(c.isupper() for c in passwort), "Mindestens ein Großbuchstabe"),
+            (any(c.isdigit() for c in passwort), "Mindestens eine Zahl"),
+            (any(c in "!@#$%^&*;" for c in passwort), "Mindestens ein Sonderzeichen"),
+        ]
+        for erfuellt, text in checks:
+            farbe = "green" if erfuellt else "red"
+            symbol = "✓" if erfuellt else "✗"
+            st.markdown(f'<p style="color:{farbe}; font-size:13px;">{symbol} {text}</p>', unsafe_allow_html=True)
+    passwort_wiederholen = st.text_input("Passwort wiederholen", type="password")
+    if passwort_wiederholen:
+        if passwort != passwort_wiederholen:
             st.error("Passwörter sind nicht identisch")
+    if st.button("Konto erstellen"):
+        if not email or not passwort or not passwort_wiederholen:
+            st.error("Bitte alle Pflichfelder ausfüllen")
         else:
             try:
-                datenbank.registriere_user(verbindung, nachname, vorname, ansprache, email, passwort)
-                st.session_state["ansprache"] = ansprache
-                st.success("Konto erstellt")
+                datenbank.registriere_user(
+                    verbindung,
+                    st.session_state["nachname"],
+                    st.session_state["vorname"],
+                    st.session_state["ansprache"],
+                    email,
+                    passwort
+                )
                 st.session_state["onboarding_screen"] += 1
                 st.rerun()
-            except Exception:
-                st.warning("Du hast bereits ein Koto bei uns")
-
+            except sqlite3.IntegrityError:
+                st.warning("Dise E-Mail-Adresse ist bereits registriert.")
+            except Exception as e:
+                st.error("Ein unbekannter Fehler ist aufgetreten. Bitte versuche es erneut.")
+                print(f"DEBUG: {e}")
 
 def bestaetigung():
-    ansprache = st.session_state["ansprache"]
+    ansprache = st.session_state["ansprache"] or st.session_state.get("vorname", "")
     st.markdown(f"""
             <div class="splash-screen">
             <div class="splash-top"></div>

@@ -211,14 +211,14 @@ def design_system_laden():
         
         .onboarding-headline {
             font-family: var(--serif);
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 600;
             color: var(--primary);
             margin-bottom: 16px;
         }
         
         .onboarding-body {
-            font-size: 17px;
+            font-size: 19px;
             color: var(--text-mid);
             line-height: 1.6;
             margin-bottom: 40px
