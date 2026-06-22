@@ -20,7 +20,7 @@ def zeige_onboarding(verbindung):
     elif screen == 5:
         registrierung_kontakt(verbindung)
     elif screen == 6:
-        bestaetigung()
+        bestaetigung(verbindung)
 
 
 def herzlich_willkommen():
@@ -187,7 +187,7 @@ def registrierung_kontakt (verbindung):
                 st.error("Ein unbekannter Fehler ist aufgetreten. Bitte versuche es erneut.")
                 print(f"DEBUG: {e}")
 
-def bestaetigung():
+def bestaetigung(verbindung):
     ansprache = st.session_state["ansprache"] or st.session_state.get("vorname", "")
     st.markdown(f"""
             <div class="splash-screen">
@@ -205,6 +205,7 @@ def bestaetigung():
         </div>
         """, unsafe_allow_html=True)
     if st.button("Jetzt starten"):
+        datenbank.setze_onboarding_complete(verbindung)
         st.session_state["onboarding_screen"] += 1
         st.rerun()
 

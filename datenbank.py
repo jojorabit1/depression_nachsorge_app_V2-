@@ -67,6 +67,13 @@ def registriere_user(verbindung, nachname, vorname, ansprache, email, passwort):
     verbindung.commit()
     return cursor.lastrowid
 
+def setze_onboarding_complete(verbindung):
+    cursor = verbindung.cursor()
+    cursor.execute(
+        "UPDATE users SET onboarding_complete = 1"
+    )
+    verbindung.commit()
+
 def wort_speichern(verbindung, datum, wort):
     cursor = verbindung.cursor()
     cursor.execute(
